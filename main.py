@@ -21,23 +21,37 @@ def home():
 def dataTypeChange():
     if request.method == 'GET':
         dtypes = {key: str(value) for key, value in dummy.dtypes.to_dict().items()}
-        print(dtypes)
         return jsonify({'dtypes':dtypes})
 
     if request.method == 'POST':
         data = request.get_json()
         key = data.get('key')
         dtype = data.get('dtype').lower()
-        if 'int' in dtype:
-            dummy[key] = dummy[key].astype(int)
-        elif 'float' in dtype:
-            dummy[key] = dummy[key].astype(float)
-        elif 'object' in dtype:
-            dummy[key] = dummy[key].astype(str)
-        else:
-            return {'changed':False}
         dtypes = {key: str(value) for key, value in dummy.dtypes.to_dict().items()}
-        return {'changed':True,'dtypes':dtypes}
+
+        if 'int' in dtype:
+            try:
+                dummy[key] = dummy[key].astype(int)
+            except:
+                return {'changed':False,"msg":f"{key} can not be casted to {dtype}","dtypes":dtypes,"key":key,"dtype":dtype}
+        elif 'float' in dtype:
+            try:
+                dummy[key] = dummy[key].astype(float)
+            except:
+                return {'changed':False,"msg":f"{key} can not be casted to {dtype}","dtypes":dtypes,"key":key,"dtype":dtype}
+
+        elif 'object' in dtype:
+            try:
+                dummy[key] = dummy[key].astype(str)
+            except:
+                return {'changed':False,"msg":f"{key} can not be casted to {dtype}","dtypes":dtypes,"key":key,"dtype":dtype}
+            
+        else:
+            print(f"Fail to casted {key} to {dtype} datatype")
+            return {'changed':False,"msg":f"{key} can not be casted to {dtype}","dtypes":dtypes,"key":key,"dtype":dtype}
+        
+        print(f"{key} casted to {dtype} datatype")
+        return {'successful':True,'dtypes':dtypes,"msg":"Successfully Data type changed","key":key,"dtype":dtype}
 
 @app.route("/api/df/missingdata/operation",methods=['POST','GET'])
 def keyoperation():
