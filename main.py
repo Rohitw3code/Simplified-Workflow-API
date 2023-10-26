@@ -71,6 +71,13 @@ def dataframe(count:int = 5):
     data_val = data.head(int(count)).to_dict(orient='list')
     return {"data":data_val,"shape":data.shape}
 
+@app.route('/api/df/dataencoding',methods=['GET','POST'])
+def data_encoding():
+    if request.method == 'GET':
+        print(list(dummy.columns))
+        return {"columns":list(dummy.columns)}
+    
+
 @app.route("/api/df/missingdata",methods=['GET'])
 def missingData():
     global dummy
