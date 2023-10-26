@@ -16,6 +16,18 @@ dummy = df.copy()
 def home():
     return jsonify({"message":["working","person"]})
 
+@app.route("/api/df/colsdata",methods=["POST","GET"])
+def colsData():
+    if request.method == "POST":
+        print("POST")
+        data = request.get_json()
+        cols = data.get('cols')
+        print(cols)
+        data_val = dummy[cols].head(5).to_dict(orient='list')
+        return {"data":data_val,"shape":dummy.shape}
+
+
+
 
 @app.route("/api/df/datatypechange",methods=["POST","GET"])
 def dataTypeChange():
@@ -88,7 +100,6 @@ def dataframe(count:int = 5):
 @app.route('/api/df/dataencoding',methods=['GET','POST'])
 def data_encoding():
     if request.method == 'GET':
-        print(list(dummy.columns))
         return {"columns":list(dummy.columns)}
     
 
