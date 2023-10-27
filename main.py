@@ -19,14 +19,11 @@ def home():
 @app.route("/api/df/colsdata",methods=["POST","GET"])
 def colsData():
     if request.method == "POST":
-        print("POST")
         data = request.get_json()
         cols = data.get('cols')
-        print(cols)
         data_val = dummy[cols].head(5).to_dict(orient='list')
-        return {"data":data_val,"shape":dummy.shape}
-
-
+        print("data_val : ",data_val)
+        return jsonify({"data":data_val,"shape":dummy.shape})
 
 
 @app.route("/api/df/datatypechange",methods=["POST","GET"])
@@ -94,8 +91,17 @@ def keyoperation():
 @app.route('/api/df/<count>',methods=['GET'])
 def dataframe(count:int = 5):
     data = df.dropna()
-    data_val = data.head(int(count)).to_dict(orient='list')
-    return {"data":data_val,"shape":data.shape}
+    cols = request.args.get('cols')
+    if cols:
+        print("COLS AVAILLABLE0 : ",cols)
+        cols = cols.split(',')
+    else:
+        cols = list(data.keys())
+        print("COLS NOT AVAILALE : ",cols)
+
+    data_val = data[cols].head(int(count)).to_dict(orient='list')
+    return jsonify({"data":data_val,"shape":data.shape})
+
 
 @app.route('/api/df/dataencoding',methods=['GET','POST'])
 def data_encoding():
