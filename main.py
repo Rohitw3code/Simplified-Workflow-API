@@ -1,6 +1,7 @@
 from flask import Flask,request,jsonify
 from flask_cors import CORS
 import pandas as pd
+from sklearn.preprocessing import OrdinalEncoder
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -22,7 +23,6 @@ def colsData():
         data = request.get_json()
         cols = data.get('cols')
         data_val = dummy[cols].head(5).to_dict(orient='list')
-        print("data_val : ",data_val)
         return jsonify({"data":data_val,"shape":dummy.shape})
 
 
@@ -91,10 +91,9 @@ def keyoperation():
 @app.route('/api/df/<count>',methods=['GET'])
 def dataframe(count:int = 5):
     global df
-    data = df.dropna()
+    data = dummy.dropna()
     cols = request.args.get('cols')
     if cols:
-        print("COLS : ",cols)
         cols = cols.split(',')
         data_val = data[cols].head(int(count)).to_dict(orient='list')
         return jsonify({"data":data_val,"shape":df.shape})
@@ -116,6 +115,17 @@ def dfcols():
 def data_encoding():
     if request.method == 'GET':
         return {"columns":list(dummy.columns)}
+    
+@app.route('/api/df/encode-df',methods=['GET','POST'])
+def encode_df():
+    data = request.get_json()
+    key = data.get('cols')
+    ord_enc = OrdinalEncoder()
+    dummy[key] = ord_enc.fit_transform(dummy[key])
+    print("COLS : ",key)
+    print("Encoded : ",dummy[key])
+    return jsonify({"cols":list(key),"new_data":dummy[key].head().to_dict(orient='list')})
+
     
 
 @app.route("/api/df/missingdata",methods=['GET'])
