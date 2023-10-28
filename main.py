@@ -41,6 +41,7 @@ def dataTypeChange():
         if 'int' in dtype:
             try:
                 dummy[key] = dummy[key].astype(int)
+                print("Key: ",key,"Integer",dummy[key])
             except:
                 return {'changed':False,"msg":f"{key} can not be casted to {dtype}","dtypes":dtypes,"key":key,"dtype":dtype}
         elif 'float' in dtype:
@@ -83,25 +84,33 @@ def keyoperation():
     if oprt == "replace":
         dummy[key].fillna(data.get("replace"),inplace=True)
         
-
     dtypes = {key: str(value) for key, value in dummy.dtypes.to_dict().items()}
     data = dummy.isna().sum()
     return jsonify({'updated':True,'data':data.to_dict(),'dtypes':dtypes})
 
 @app.route('/api/df/<count>',methods=['GET'])
 def dataframe(count:int = 5):
+    global df
     data = df.dropna()
     cols = request.args.get('cols')
     if cols:
-        print("COLS AVAILLABLE0 : ",cols)
+        print("COLS : ",cols)
         cols = cols.split(',')
-    else:
-        cols = list(data.keys())
-        print("COLS NOT AVAILALE : ",cols)
-
+        data_val = data[cols].head(int(count)).to_dict(orient='list')
+        return jsonify({"data":data_val,"shape":df.shape})
+    
+    cols = list(data.columns)
     data_val = data[cols].head(int(count)).to_dict(orient='list')
-    return jsonify({"data":data_val,"shape":data.shape})
+    return jsonify({"data":data_val,"shape":df.shape,"cols":cols})
 
+@app.route('/api/df/dfuniquecount',methods=['GET'])
+def dfuniquecount():
+    return jsonify({"data":dummy.nunique(axis=0).to_dict(),"shape":dummy.shape})
+
+@app.route('/api/dfcols',methods=['GET'])
+def dfcols():
+    print("COLUMNS")
+    return jsonify({"cols":list(df.columns)})
 
 @app.route('/api/df/dataencoding',methods=['GET','POST'])
 def data_encoding():
