@@ -2,6 +2,9 @@ from flask import Flask,request,jsonify
 from flask_cors import CORS
 import pandas as pd
 from sklearn.preprocessing import OrdinalEncoder
+from sklearn.model_selection import train_test_split
+
+
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -112,7 +115,7 @@ def dfcols():
     print("COLUMNS")
     return jsonify({"cols":list(df.columns)})
 
-@app.route('/api/df/dataencoding',methods=['GET','POST'])
+@app.route('/api/encode-columns',methods=['GET','POST'])
 def data_encoding():
     if request.method == 'GET':
         return {"columns":list(dummy.columns)}
@@ -123,8 +126,6 @@ def encode_df():
     key = data.get('cols')
     ord_enc = OrdinalEncoder()
     dummy[key] = ord_enc.fit_transform(dummy[key])
-    print("COLS : ",key)
-    print("Encoded : ",dummy[key])
     return jsonify({"cols":list(key),"new_data":dummy[key].head().to_dict(orient='list')})
 
 @app.route("/api/df/missingdata",methods=['GET'])
@@ -138,6 +139,15 @@ def selecttarget(target):
     TARGET = target
     print("Target Feature is Set : ",target)
     return jsonify({"msg":"Target Feature is Set "+target,"update":True})
+
+@app.route('/api/x-and-y',methods=['GET'])
+def XY():
+    pass
+
+
+@app.route("/api/train-test-split",methods=['POST','GET'])
+def traintestsplit():
+    pass
 
 
 
