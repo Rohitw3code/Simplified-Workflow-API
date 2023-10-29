@@ -15,6 +15,7 @@ f = "dataset.csv"
 df = pd.read_csv(f)
 dummy = df.copy()
 TARGET = ""
+Feature = []
 
 
 @app.route('/api/',methods=['GET'])
@@ -59,7 +60,6 @@ def dataTypeChange():
                 dummy[key] = dummy[key].astype(str)
             except:
                 return {'changed':False,"msg":f"{key} can not be casted to {dtype}","dtypes":dtypes,"key":key,"dtype":dtype}
-            
         else:
             print(f"Fail to casted {key} to {dtype} datatype")
             return {'changed':False,"msg":f"{key} can not be casted to {dtype}","dtypes":dtypes,"key":key,"dtype":dtype}
@@ -140,14 +140,21 @@ def selecttarget(target):
     print("Target Feature is Set : ",target)
     return jsonify({"msg":"Target Feature is Set "+target,"update":True})
 
-@app.route('/api/x-and-y',methods=['GET'])
-def XY():
-    pass
+@app.route('/api/feature-target',methods=['POST'])
+def featureTarget():
+    data = request.get_json()
+    feat = data.get('feature')
+    tar = data.get('target')
+    print("Feature : ",feat)
+    print("Target : ",tar)
+    return jsonify({"msg":"done"})
 
 
 @app.route("/api/train-test-split",methods=['POST','GET'])
 def traintestsplit():
     pass
+
+
 
 
 
