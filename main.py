@@ -11,6 +11,7 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 f = "dataset.csv"
 df = pd.read_csv(f)
 dummy = df.copy()
+TARGET = ""
 
 
 @app.route('/api/',methods=['GET'])
@@ -126,13 +127,19 @@ def encode_df():
     print("Encoded : ",dummy[key])
     return jsonify({"cols":list(key),"new_data":dummy[key].head().to_dict(orient='list')})
 
-    
-
 @app.route("/api/df/missingdata",methods=['GET'])
 def missingData():
     global dummy
     dtypes = {key: str(value) for key, value in dummy.dtypes.to_dict().items()}
     return {"missing":dummy.isna().sum().to_dict(),"dtypes":dtypes}
+
+@app.route("/api/select-target-feature/<target>",methods=['POST','GET'])
+def selecttarget(target):
+    TARGET = target
+    print("Target Feature is Set : ",target)
+    return jsonify({"msg":"Target Feature is Set "+target,"update":True})
+
+
 
 
 if __name__ == "__main__":
