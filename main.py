@@ -4,7 +4,8 @@ import pandas as pd
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.model_selection import train_test_split
 
-
+import RegressionAlgo
+import ClassificationAlgo
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -15,8 +16,9 @@ f = "dataset.csv"
 df = pd.read_csv(f)
 dummy = df.copy()
 TARGET = ""
-Feature = []
+FEATURE = []
 
+X_train, X_test, y_train,y_test = pd.DataFrame(),pd.DataFrame(),pd.DataFrame(),pd.DataFrame()
 
 @app.route('/api/',methods=['GET'])
 def home():
@@ -142,17 +144,36 @@ def selecttarget(target):
 
 @app.route('/api/feature-target',methods=['POST'])
 def featureTarget():
+    global FEATURE,TARGET
     data = request.get_json()
-    feat = data.get('feature')
-    tar = data.get('target')
-    print("Feature : ",feat)
-    print("Target : ",tar)
+    FEATURE = data.get('feature')
+    TARGET = data.get('target')
+    print("Feature : ",FEATURE)
+    print("Target : ",TARGET)
     return jsonify({"msg":"done"})
 
 
 @app.route("/api/train-test-split",methods=['POST','GET'])
 def traintestsplit():
-    pass
+    global X_train,X_test,y_train,y_test
+    data = request.get_json()
+    randonState = int(data.get('randomstate'))
+    shuffle = data.get('shuffle')
+    trainSize = int(data.get('trainsize'))
+    X_train, X_test, y_train, y_test = train_test_split(
+        dummy[list(FEATURE)],
+        dummy[[TARGET]],
+        random_state=randonState,
+        train_size=trainSize/100,
+        shuffle=True
+    )    
+    return jsonify({'msg':'train test split done',"trainshape":X_train.shape,"testshape":X_test.shape})
+
+@app.route("/api/regression-classification-algo",methods=["GET"])
+def regressionAlgo():
+    reg_algo = list(RegressionAlgo.regression_algorithms.keys())
+    clf_algo = list(ClassificationAlgo.classification_algorithms.keys())
+    return jsonify({'success':True,'regression':reg_algo,'classification':clf_algo})
 
 
 
