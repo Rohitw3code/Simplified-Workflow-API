@@ -12,7 +12,7 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # CORS(app)
 
-f = "dataset.csv"
+f = "dataset2.csv"
 df = pd.read_csv(f)
 dummy = df.copy()
 TARGET = ""
