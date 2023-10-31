@@ -12,7 +12,7 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # CORS(app)
 
-f = "dataset2.csv"
+f = "dataset.csv"
 df = pd.read_csv(f)
 dummy = df.copy()
 TARGET = ""
@@ -174,6 +174,35 @@ def regressionAlgo():
     reg_algo = list(RegressionAlgo.regression_algorithms.keys())
     clf_algo = list(ClassificationAlgo.classification_algorithms.keys())
     return jsonify({'success':True,'regression':reg_algo,'classification':clf_algo})
+
+@app.route("/api/model-train-algo",methods=["GET","POST"])
+def trainAlgo():
+    data = request.get_json()
+    algoType = data.get('algoType')
+    algo = data.get('algo')
+    pred = 880
+    if algoType == 'regression' and algo in list(RegressionAlgo.regression_algorithms.keys()):
+        model = RegressionAlgo.regression_algorithms[algo]
+        hist = model.fit(X_train,y_train)
+        pred = hist.predict([[3,0,1]])
+    elif algoType == 'classification' and algo in list(RegressionAlgo.classification_algorithms.keys()):
+        model = ClassificationAlgo.classification_algorithms[algo]
+        hist = model.fit(X_train,y_train)
+        pred = hist.predict([[3,0,1]])
+    else:
+        print("Not Found : ",algo," Type : ",algoType)
+        return jsonify({'success':False})
+
+
+    print("Algo : ",algo)
+    print("AlgoType : ",algoType)
+    print("Prediction : ",pred)
+
+    return jsonify({'success':True})
+
+@app.route("/api/model-predict",methods=["GET","POST"])
+def modelPredict():
+    return jsonify({'features':FEATURE,'target':TARGET})
 
 
 
