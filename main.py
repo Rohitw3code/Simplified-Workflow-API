@@ -16,6 +16,7 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 f = "dataset.csv"
 df = pd.read_csv(f)
 dummy = df.copy()
+model = ''
 hist = ''
 TARGET = ""
 FEATURE = []
@@ -190,30 +191,27 @@ def regressionAlgo():
 
 @app.route("/api/model-train-algo",methods=["GET","POST"])
 def trainAlgo():
+    global model
     global hist
     data = request.get_json()
     algoType = data.get('algoType')
     algo = data.get('algo')
     print("Algo : ",algo)
     print("AlgoType : ",algoType)
-
-    # try:
-    if algoType == 'regression' and algo in list(RegressionAlgo.regression_algorithms.keys()):
-        model = RegressionAlgo.regression_algorithms[algo]
-        hist = model.fit(X_train,y_train)
-    elif algoType == 'classification' and algo in list(ClassificationAlgo.classification_algorithms.keys()):
-        model = ClassificationAlgo.classification_algorithms[algo]
-        hist = model.fit(np.array(X_train),np.ravel(y_train))
-    else:
-        print("Not Found : ",algo," Type : ",algoType)
-        return jsonify({'success':False,"message":"Not Algorithm is selected",'features':FEATURE,'target':TARGET})
-    # except:
-    #     print("Data set not splitted")
-    #     return jsonify({'success':False,"message":"train test split is not performed",'features':FEATURE,'target':TARGET})
+    try:
+        if algoType == 'regression' and algo in list(RegressionAlgo.regression_algorithms.keys()):
+            model = RegressionAlgo.regression_algorithms[algo]
+            hist = model.fit(X_train,y_train)
+        elif algoType == 'classification' and algo in list(ClassificationAlgo.classification_algorithms.keys()):
+            model = ClassificationAlgo.classification_algorithms[algo]
+            hist = model.fit(np.array(X_train),np.ravel(y_train))
+        else:
+            print("Not Found : ",algo," Type : ",algoType)
+            return jsonify({'success':False,"message":"Not Algorithm is selected",'features':FEATURE,'target':TARGET})
+    except Exception as e:
+        return jsonify({'success':False,"message":str(e),'features':FEATURE,'target':TARGET})
 
     return jsonify({'success':True,"message":"successful",'features':FEATURE,'target':TARGET})
-
-
 
 @app.route("/api/mode-predict",methods=["GET","POST"])
 def modelPredict():
@@ -225,6 +223,30 @@ def modelPredict():
     pred = hist.predict([int_feature])
     print("Prediction : ",str(pred))
     return jsonify({'predict':round(np.array(pred).ravel()[0])})
+
+@app.route("/api/model-params",methods=["GET","POST"])
+def modelParams():
+    global model
+    data = request.get_json()
+    algoType = data.get('algoType')
+    algo = data.get('algo')
+    try:
+        if algoType == 'regression' and algo in list(RegressionAlgo.regression_algorithms.keys()):
+            model = RegressionAlgo.regression_algorithms[algo]
+        elif algoType == 'classification' and algo in list(ClassificationAlgo.classification_algorithms.keys()):
+            model = ClassificationAlgo.classification_algorithms[algo]
+        else:
+            print("Modle Not selected : ",algo," Type : ",algoType)
+            return jsonify({'success':False,'message':'Model Not selected','params':{},'params_key':[]})
+    except Exception as e:
+            return jsonify({'success':False,'message':'Model Not selected','params':{},'params_key':[]})
+    
+    params = model.get_params()
+    print('Algo : ',algo)
+    print('params : ',params)
+    print('param keys : ',list(params.keys()))
+    return jsonify({'success':True,'params':params,'params_key':list(params.keys())})
+
 
 
 
