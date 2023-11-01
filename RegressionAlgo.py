@@ -25,9 +25,9 @@ regression_algorithms = {
     'K-Nearest Neighbors (KNN) Regression': KNeighborsRegressor(),
     'Gradient Boosting Regressor': GradientBoostingRegressor(),
     'Gaussian Process Regression': GaussianProcessRegressor(),
-    'Isotonic Regression': IsotonicRegression(),
+    # 'Isotonic Regression': IsotonicRegression(),
     'RANSAC (RANdom SAmple Consensus)': RANSACRegressor(),
-    'Polynomial Regression': PolynomialFeatures(),
+    # 'Polynomial Regression': PolynomialFeatures(),
     'Multi-Output Regression': MultiOutputRegressor(LinearRegression()),
     'Poisson Regression': PoissonRegressor()
 }

@@ -1,6 +1,7 @@
 from flask import Flask,request,jsonify
 from flask_cors import CORS
 import pandas as pd
+import numpy as np
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.model_selection import train_test_split
 
@@ -115,7 +116,6 @@ def dfuniquecount():
 
 @app.route('/api/dfcols',methods=['GET'])
 def dfcols():
-    print("COLUMNS")
     return jsonify({"cols":list(df.columns)})
 
 @app.route('/api/encode-columns',methods=['GET','POST'])
@@ -197,21 +197,22 @@ def trainAlgo():
     print("Algo : ",algo)
     print("AlgoType : ",algoType)
 
-    try:
-        if algoType == 'regression' and algo in list(RegressionAlgo.regression_algorithms.keys()):
-            model = RegressionAlgo.regression_algorithms[algo]
-            hist = model.fit(X_train,y_train)
-        elif algoType == 'classification' and algo in list(RegressionAlgo.classification_algorithms.keys()):
-            model = ClassificationAlgo.classification_algorithms[algo]
-            hist = model.fit(X_train,y_train)
-        else:
-            print("Not Found : ",algo," Type : ",algoType)
-            return jsonify({'success':False,"message":"Not Algorithm is selected",'features':FEATURE,'target':TARGET})
-    except:
-        print("Data set not splitted")
-        return jsonify({'success':False,"message":"train test split is not performed",'features':FEATURE,'target':TARGET})
+    # try:
+    if algoType == 'regression' and algo in list(RegressionAlgo.regression_algorithms.keys()):
+        model = RegressionAlgo.regression_algorithms[algo]
+        hist = model.fit(X_train,y_train)
+    elif algoType == 'classification' and algo in list(ClassificationAlgo.classification_algorithms.keys()):
+        model = ClassificationAlgo.classification_algorithms[algo]
+        hist = model.fit(np.array(X_train),np.ravel(y_train))
+    else:
+        print("Not Found : ",algo," Type : ",algoType)
+        return jsonify({'success':False,"message":"Not Algorithm is selected",'features':FEATURE,'target':TARGET})
+    # except:
+    #     print("Data set not splitted")
+    #     return jsonify({'success':False,"message":"train test split is not performed",'features':FEATURE,'target':TARGET})
 
     return jsonify({'success':True,"message":"successful",'features':FEATURE,'target':TARGET})
+
 
 
 @app.route("/api/mode-predict",methods=["GET","POST"])
@@ -219,9 +220,11 @@ def modelPredict():
     data = request.get_json()
     f = data.get('featureValue')
     print("Feature Value : ",f)
-    pred = hist.predict([[int(i) for i in f]])
-    print("Prediction : ",pred[0][0])
-    return jsonify({'predict':int(pred)})
+    int_feature = [ int(i) for i in f ]
+    print("feature : ",int_feature)
+    pred = hist.predict([int_feature])
+    print("Prediction : ",str(pred))
+    return jsonify({'predict':round(np.array(pred).ravel()[0])})
 
 
 
