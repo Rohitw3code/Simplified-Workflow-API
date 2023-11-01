@@ -15,6 +15,7 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 f = "dataset.csv"
 df = pd.read_csv(f)
 dummy = df.copy()
+hist = ''
 TARGET = ""
 FEATURE = []
 
@@ -156,18 +157,30 @@ def featureTarget():
 @app.route("/api/train-test-split",methods=['POST','GET'])
 def traintestsplit():
     global X_train,X_test,y_train,y_test
-    data = request.get_json()
-    randonState = int(data.get('randomstate'))
-    shuffle = data.get('shuffle')
-    trainSize = int(data.get('trainsize'))
-    X_train, X_test, y_train, y_test = train_test_split(
-        dummy[list(FEATURE)],
-        dummy[[TARGET]],
-        random_state=randonState,
-        train_size=trainSize/100,
-        shuffle=True
-    )    
-    return jsonify({'msg':'train test split done',"trainshape":X_train.shape,"testshape":X_test.shape})
+    try:
+        data = request.get_json()
+        randonState = int(data.get('randomstate'))
+        shuffle = data.get('shuffle')
+        trainSize = int(data.get('trainsize'))
+    except Exception as e:
+        print("Error : ",e)
+        return jsonify({'success':False,'message':"Error : input value is not filled","trainshape":X_train.shape,"testshape":X_test.shape})
+
+    try:
+        X_train, X_test, y_train, y_test = train_test_split(
+            dummy[list(FEATURE)],
+            dummy[[TARGET]],
+            random_state=randonState,
+            train_size=trainSize/100,
+            shuffle=True
+        )    
+    except Exception as e:
+        print("Error : ",e)
+        return jsonify({'success':False,'message':"Error : Feature and Target is not selected","trainshape":X_train.shape,"testshape":X_test.shape})
+    
+    print("train test split done")
+    return jsonify({'success':True,'message':'train test split done',"trainshape":X_train.shape,"testshape":X_test.shape})
+
 
 @app.route("/api/regression-classification-algo",methods=["GET"])
 def regressionAlgo():
@@ -177,33 +190,38 @@ def regressionAlgo():
 
 @app.route("/api/model-train-algo",methods=["GET","POST"])
 def trainAlgo():
+    global hist
     data = request.get_json()
     algoType = data.get('algoType')
     algo = data.get('algo')
-    pred = 880
-    if algoType == 'regression' and algo in list(RegressionAlgo.regression_algorithms.keys()):
-        model = RegressionAlgo.regression_algorithms[algo]
-        hist = model.fit(X_train,y_train)
-        pred = hist.predict([[3,0,1]])
-    elif algoType == 'classification' and algo in list(RegressionAlgo.classification_algorithms.keys()):
-        model = ClassificationAlgo.classification_algorithms[algo]
-        hist = model.fit(X_train,y_train)
-        pred = hist.predict([[3,0,1]])
-    else:
-        print("Not Found : ",algo," Type : ",algoType)
-        return jsonify({'success':False})
-
-
     print("Algo : ",algo)
     print("AlgoType : ",algoType)
-    print("Prediction : ",pred)
 
-    return jsonify({'success':True})
+    try:
+        if algoType == 'regression' and algo in list(RegressionAlgo.regression_algorithms.keys()):
+            model = RegressionAlgo.regression_algorithms[algo]
+            hist = model.fit(X_train,y_train)
+        elif algoType == 'classification' and algo in list(RegressionAlgo.classification_algorithms.keys()):
+            model = ClassificationAlgo.classification_algorithms[algo]
+            hist = model.fit(X_train,y_train)
+        else:
+            print("Not Found : ",algo," Type : ",algoType)
+            return jsonify({'success':False,"message":"Not Algorithm is selected",'features':FEATURE,'target':TARGET})
+    except:
+        print("Data set not splitted")
+        return jsonify({'success':False,"message":"train test split is not performed",'features':FEATURE,'target':TARGET})
 
-@app.route("/api/model-predict",methods=["GET","POST"])
+    return jsonify({'success':True,"message":"successful",'features':FEATURE,'target':TARGET})
+
+
+@app.route("/api/mode-predict",methods=["GET","POST"])
 def modelPredict():
-    return jsonify({'features':FEATURE,'target':TARGET})
-
+    data = request.get_json()
+    f = data.get('featureValue')
+    print("Feature Value : ",f)
+    pred = hist.predict([[int(i) for i in f]])
+    print("Prediction : ",pred[0][0])
+    return jsonify({'predict':int(pred)})
 
 
 
