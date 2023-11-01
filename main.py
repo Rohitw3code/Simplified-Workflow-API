@@ -3,6 +3,7 @@ from flask_cors import CORS
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import OrdinalEncoder
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
 import RegressionAlgo
@@ -207,11 +208,13 @@ def trainAlgo():
             hist = model.fit(np.array(X_train),np.ravel(y_train))
         else:
             print("Not Found : ",algo," Type : ",algoType)
-            return jsonify({'success':False,"message":"Not Algorithm is selected",'features':FEATURE,'target':TARGET})
+            return jsonify({'success':False,"message":"Not Algorithm is selected",'features':FEATURE,'target':TARGET,'accuracy':accuracy})
     except Exception as e:
-        return jsonify({'success':False,"message":str(e),'features':FEATURE,'target':TARGET})
+        return jsonify({'success':False,"message":str(e),'features':FEATURE,'target':TARGET,'accuracy':-1})
 
-    return jsonify({'success':True,"message":"successful",'features':FEATURE,'target':TARGET})
+    y_pred = model.predict(np.array(X_test))
+    accuracy = round(accuracy_score(y_test, y_pred),4)*100
+    return jsonify({'success':True,"message":"successful",'features':FEATURE,'target':TARGET,'accuracy':accuracy})
 
 @app.route("/api/mode-predict",methods=["GET","POST"])
 def modelPredict():
