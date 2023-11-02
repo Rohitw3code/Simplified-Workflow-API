@@ -79,6 +79,7 @@ def keyoperation():
     data = request.get_json()
     key = data.get('key')
     oprt = data.get('operation')
+    replace = data.get('replace')
 
     if oprt == 'mean':
         dummy[key].fillna(dummy[key].mean(),inplace=True)
@@ -92,7 +93,7 @@ def keyoperation():
     if oprt == 'delete':
         dummy.drop(key,axis=1,inplace=True)
     if oprt == "replace":
-        dummy[key].fillna(data.get("replace"),inplace=True)
+        dummy[key].fillna(replace,inplace=True)
         
     dtypes = {key: str(value) for key, value in dummy.dtypes.to_dict().items()}
     data = dummy.isna().sum()
@@ -250,7 +251,15 @@ def modelParams():
     print('param keys : ',list(params.keys()))
     return jsonify({'success':True,'params':params,'params_key':list(params.keys())})
 
-
+@app.route("/api/unique-values",methods=['GET','POST'])
+def dataValeu():
+    global dummy
+    uniq = {}
+    keys = []
+    for key in dummy.keys():
+        uniq[key] = list(pd.unique(df[key]))
+        keys.append(key)
+    return jsonify({'success':True,'unique_value':uniq,'keys':keys})
 
 
 
