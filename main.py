@@ -14,8 +14,8 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # CORS(app)
 
-f = "dataset.csv"
-df = pd.read_csv(f)
+f = ""
+df = pd.DataFrame()
 dummy = df.copy()
 model = ''
 hist = ''
@@ -23,6 +23,17 @@ TARGET = ""
 FEATURE = []
 
 X_train, X_test, y_train,y_test = pd.DataFrame(),pd.DataFrame(),pd.DataFrame(),pd.DataFrame()
+
+@app.route('/api/load-dataset/<filename>',methods=['GET'])
+def loadDataset(filename):
+    global f,df,dummy
+    f = filename
+    if f.strip() != '':
+        df = pd.read_csv(f)
+        dummy = df.copy()
+        return {"success":True,"filename":filename} 
+    return {"success":False}
+
 
 @app.route('/api/',methods=['GET'])
 def home():
@@ -69,7 +80,6 @@ def dataTypeChange():
         else:
             print(f"Fail to casted {key} to {dtype} datatype")
             return {'changed':False,"msg":f"{key} can not be casted to {dtype}","dtypes":dtypes,"key":key,"dtype":dtype}
-        
         print(f"{key} casted to {dtype} datatype")
         return {'successful':True,'dtypes':dtypes,"msg":"Successfully Data type changed","key":key,"dtype":dtype}
 
@@ -98,6 +108,8 @@ def keyoperation():
     dtypes = {key: str(value) for key, value in dummy.dtypes.to_dict().items()}
     data = dummy.isna().sum()
     return jsonify({'updated':True,'data':data.to_dict(),'dtypes':dtypes})
+
+
 
 @app.route('/api/df/<count>',methods=['GET'])
 def dataframe(count:int = 5):
@@ -156,10 +168,21 @@ def featureTarget():
     print("Target : ",TARGET)
     return jsonify({"msg":"done"})
 
+@app.route("/api/dataunique",methods=['GET','POST'])
+def dataV():
+    global dummy
+    uniq = {}
+    keys = []
+    for key in dummy.keys():
+        uniq[key] = list(pd.unique(df[key].dropna()))
+        keys.append(key)
+    print('unique : ',uniq)
+    return jsonify({'success':True,'unique_value':{'a':[7,8]},'keys':keys})
 
 @app.route("/api/train-test-split",methods=['POST','GET'])
 def traintestsplit():
     global X_train,X_test,y_train,y_test
+    print("train test split")
     try:
         data = request.get_json()
         randonState = int(data.get('randomstate'))
@@ -181,7 +204,6 @@ def traintestsplit():
         print("Error : ",e)
         return jsonify({'success':False,'message':"Error : Feature and Target is not selected","trainshape":X_train.shape,"testshape":X_test.shape})
     
-    print("train test split done")
     return jsonify({'success':True,'message':'train test split done',"trainshape":X_train.shape,"testshape":X_test.shape})
 
 
@@ -248,18 +270,7 @@ def modelParams():
     params = model.get_params()
     print('Algo : ',algo)
     print('params : ',params)
-    print('param keys : ',list(params.keys()))
     return jsonify({'success':True,'params':params,'params_key':list(params.keys())})
-
-@app.route("/api/unique-values",methods=['GET','POST'])
-def dataValeu():
-    global dummy
-    uniq = {}
-    keys = []
-    for key in dummy.keys():
-        uniq[key] = list(pd.unique(df[key]))
-        keys.append(key)
-    return jsonify({'success':True,'unique_value':uniq,'keys':keys})
 
 
 
