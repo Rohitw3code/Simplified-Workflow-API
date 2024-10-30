@@ -28,6 +28,7 @@ X_train, X_test, y_train,y_test = pd.DataFrame(),pd.DataFrame(),pd.DataFrame(),p
 def loadDataset(filename):
     global f,df,dummy
     f = filename
+    f = 'dataset.csv'
     if f.strip() != '':
         df = pd.read_csv(f)
         dummy = df.copy()
